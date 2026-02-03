@@ -12,14 +12,14 @@ TOPICS_EXCEL = DATA_DIR / "topics.xlsx"
 OUTPUT_DIR = BASE_DIR / "output"
 
 # API keys
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "").strip()
 
-# OpenAI
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
-DALLE_MODEL = "dall-e-3"
-DALLE_SIZE = "1792x1024"  # landscape, good for LinkedIn
-DALLE_QUALITY = "standard"
+# Gemini (chat: topics + content)
+GEMINI_CHAT_MODEL = os.getenv("GEMINI_CHAT_MODEL", "gemini-3-flash-preview")
+
+# Gemini (images: Imagen) — use imagen-4.0-generate-001 for Gemini API
+GEMINI_IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "imagen-4.0-generate-001")
 
 
 def ensure_dirs():

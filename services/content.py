@@ -1,11 +1,10 @@
-"""OpenAI ChatGPT: generate LinkedIn post from topic (strategist prompt)."""
+"""Gemini: generate LinkedIn post from topic (strategist prompt)."""
 from typing import Optional
-from openai import OpenAI
 
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from config import OPENAI_API_KEY, OPENAI_CHAT_MODEL
+from config import GEMINI_API_KEY, GEMINI_CHAT_MODEL
 
 
 SYSTEM_PROMPT = """Act as a B2B Social Media Strategist and LinkedIn Growth Analyst (2026) who deeply understands how high-performing professional content is ranked and distributed on LinkedIn today.
@@ -89,21 +88,21 @@ def generate_linkedin_content(
     """
     Generate LinkedIn post (Headline/Hook, main content, hashtags) for the given topic.
     """
-    if not OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY is not set in .env")
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY is not set in .env")
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    import google.generativeai as genai
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel(
+        GEMINI_CHAT_MODEL,
+        system_instruction=SYSTEM_PROMPT,
+    )
     user_content = f'Create a LinkedIn post for this topic: "{topic}"'
     if extra_context:
         user_content += f"\n\nAdditional context: {extra_context}"
 
-    resp = client.chat.completions.create(
-        model=OPENAI_CHAT_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_content},
-        ],
-        max_tokens=800,
-        temperature=0.7,
+    resp = model.generate_content(
+        user_content,
+        generation_config={"max_output_tokens": 65536, "temperature": 0.7},
     )
-    return (resp.choices[0].message.content or "").strip()
+    return (resp.text or "").strip()

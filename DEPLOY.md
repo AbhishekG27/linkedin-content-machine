@@ -40,7 +40,7 @@ git push -u origin main
 5. Add your keys in TOML format:
 
 ```toml
-OPENAI_API_KEY = "sk-proj-..."
+GEMINI_API_KEY = "..."
 TAVILY_API_KEY = "tvly-..."
 ```
 
@@ -75,6 +75,6 @@ Then commit and push; Streamlit will use that version on the next deploy.
 
 | Issue | What to do |
 |--------|------------|
-| “Set OPENAI_API_KEY” / “Set TAVILY_API_KEY” in app | Add both in **App → Settings → Secrets** and redeploy. |
+| “Set GEMINI_API_KEY” / “Set TAVILY_API_KEY” in app | Add both in **App → Settings → Secrets** and redeploy. |
 | Build fails | Check **Deploy log** on Streamlit Cloud; fix any missing deps in `requirements.txt` and push. |
 | App is slow to start | Normal on free tier; first request after idle may take ~30s. |

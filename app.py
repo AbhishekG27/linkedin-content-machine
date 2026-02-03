@@ -1,9 +1,9 @@
 """
 LinkedIn Content Machine — AI-powered pipeline:
-1. OpenAI: suggest trending topics → Excel + list
+1. Tavily + Gemini: suggest trending topics → Excel + list
 2. Human: select topic or search again
-3. ChatGPT: generate LinkedIn post (strategist prompt)
-4. DALL-E: generate image → human approval / regenerate
+3. Gemini: generate LinkedIn post (strategist prompt)
+4. Gemini Imagen: generate image → human approval / regenerate
 """
 import streamlit as st
 from pathlib import Path
@@ -11,7 +11,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import ensure_dirs, TOPICS_EXCEL, OPENAI_API_KEY, TAVILY_API_KEY
+from config import ensure_dirs, TOPICS_EXCEL, GEMINI_API_KEY, TAVILY_API_KEY
 from services.topics import search_trending_topics
 from services.excel_store import save_topics_to_excel, load_topics_from_excel
 from services.content import generate_linkedin_content
@@ -111,12 +111,12 @@ else:
     st.session_state.selected_topic = None
     st.caption("Search again above if none of the topics fit.")
 
-# --- Step 3: Generate content (ChatGPT — strategist prompt) ---
-st.header("3️⃣ LinkedIn post (ChatGPT)")
+# --- Step 3: Generate content (Gemini — strategist prompt) ---
+st.header("3️⃣ LinkedIn post (Gemini)")
 if st.session_state.selected_topic:
     if st.button("✨ Generate post"):
-        if not OPENAI_API_KEY:
-            st.error("Set OPENAI_API_KEY in .env")
+        if not GEMINI_API_KEY:
+            st.error("Set GEMINI_API_KEY in .env")
         else:
             with st.spinner("Generating post…"):
                 try:
@@ -128,8 +128,8 @@ if st.session_state.selected_topic:
 else:
     st.caption("Select a topic first.")
 
-# --- Step 4: Image (DALL-E, approve / regenerate) ---
-st.header("4️⃣ Post image (DALL-E)")
+# --- Step 4: Image (Gemini Imagen, approve / regenerate) ---
+st.header("4️⃣ Post image (Gemini Imagen)")
 if st.session_state.selected_topic:
     if st.button("🖼️ Generate image"):
         with st.spinner("Generating image…"):
@@ -166,7 +166,7 @@ if st.session_state.image_path:
 with st.expander("Setup (API keys)"):
     st.code("""
 # Copy .env.example to .env and set:
-OPENAI_API_KEY=sk-...   # ChatGPT + DALL-E
+GEMINI_API_KEY=...      # Topics, LinkedIn post, and images (Gemini)
 TAVILY_API_KEY=tvly-... # Web search for recent topics (day/week/month)
     """)
     st.caption("Topics are stored in data/topics.xlsx. Run: streamlit run app.py")

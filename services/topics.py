@@ -1,4 +1,4 @@
-"""Trending topics: Tavily (WEF/workforce + domains) + OpenAI to shape topics per strategist brief."""
+"""Trending topics: Tavily (WEF/workforce + domains) + Gemini to shape topics per strategist brief."""
 import json
 import re
 from typing import List, Dict, Any
@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from config import TAVILY_API_KEY, OPENAI_API_KEY, OPENAI_CHAT_MODEL
+from config import TAVILY_API_KEY, GEMINI_API_KEY, GEMINI_CHAT_MODEL
 
 DEFAULT_NICHES = (
     "AI, Gen AI, Agentic AI, VLSI, Embedded Systems, IT Services and Industry"
@@ -43,7 +43,7 @@ def search_trending_topics(
     recency: str = "month",
 ) -> List[Dict[str, Any]]:
     """
-    Use Tavily for WEF/workforce/domain search, then OpenAI to shape topics per strategist brief.
+    Use Tavily for WEF/workforce/domain search, then Gemini to shape topics per strategist brief.
     Returns list of dicts with keys: title, reason, summary.
     """
     if not TAVILY_API_KEY:
@@ -101,7 +101,7 @@ def search_trending_topics(
         except Exception:
             pass
 
-    # Build raw context for OpenAI
+    # Build raw context for Gemini
     raw = []
     for r in results:
         title = (getattr(r, "title", None) or (r.get("title") if isinstance(r, dict) else None) or "").strip()
@@ -110,11 +110,15 @@ def search_trending_topics(
             raw.append(f"Title: {title}\nSnippet: {content[:400]}")
     raw_text = "\n\n---\n\n".join(raw[:20]) if raw else "No recent results found."
 
-    # If OpenAI is available, shape topics with the strategist prompt
-    if OPENAI_API_KEY and raw_text.strip():
+    # If Gemini is available, shape topics with the strategist prompt
+    if GEMINI_API_KEY and raw_text.strip():
         try:
-            from openai import OpenAI
-            openai_client = OpenAI(api_key=OPENAI_API_KEY)
+            import google.generativeai as genai
+            genai.configure(api_key=GEMINI_API_KEY)
+            model = genai.GenerativeModel(
+                GEMINI_CHAT_MODEL,
+                system_instruction=TOPIC_STRATEGIST_SYSTEM,
+            )
             user_prompt = f"""Based on the following web search results (WEF/workforce/domain-related), output exactly {count} topic ideas for LinkedIn that match the Role & Context above.
 
 Web search results (recent, {time_range}):
@@ -127,16 +131,11 @@ For each topic provide a JSON array of objects with keys: "title", "reason", "su
 
 Return ONLY the JSON array, no other text. Prioritize data-backed insights over speculation."""
 
-            resp = openai_client.chat.completions.create(
-                model=OPENAI_CHAT_MODEL,
-                messages=[
-                    {"role": "system", "content": TOPIC_STRATEGIST_SYSTEM},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=2048,
-                temperature=0.4,
+            resp = model.generate_content(
+                user_prompt,
+                generation_config={"max_output_tokens": 65536, "temperature": 0.4},
             )
-            content = (resp.choices[0].message.content or "").strip()
+            content = (resp.text or "").strip()
             content_clean = re.sub(r"^```\w*\n?", "", content)
             content_clean = re.sub(r"\n?```\s*$", "", content_clean).strip()
             try:

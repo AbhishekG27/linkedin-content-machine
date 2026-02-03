@@ -1,11 +1,11 @@
 # LinkedIn Content Machine
 
-Automate your LinkedIn content pipeline with **OpenAI only**:
+Automate your LinkedIn content pipeline with **Gemini only**:
 
-1. **OpenAI** — Suggest trending, high-engagement topics (AI, Gen AI, Agentic AI, VLSI, Embedded, IT Services), list them, and store in Excel.
+1. **Tavily + Gemini** — Suggest trending, high-engagement topics (AI, Gen AI, Agentic AI, VLSI, Embedded, IT Services), list them, and store in Excel.
 2. **Human** — Select a topic from the list or trigger a new search.
-3. **ChatGPT** — Generate LinkedIn post using the strategist prompt (scroll-stopping hooks, punchy content, hashtags; authority/community growth; no C-level or company names).
-4. **DALL-E** — Generate image; you approve or regenerate.
+3. **Gemini** — Generate LinkedIn post using the strategist prompt (scroll-stopping hooks, punchy content, hashtags; authority/community growth; no C-level or company names).
+4. **Gemini Imagen** — Generate image; you approve or regenerate.
 
 Fully runnable locally or deployable (Streamlit Cloud, Docker, etc.).
 
@@ -29,9 +29,10 @@ Copy `.env.example` to `.env` and set:
 
 | Variable | Where to get |
 |----------|--------------|
-| `OPENAI_API_KEY` | [OpenAI API keys](https://platform.openai.com/api-keys) — topics, ChatGPT, DALL-E |
+| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) — topics, LinkedIn post, and images |
+| `TAVILY_API_KEY` | [Tavily](https://app.tavily.com) — web search for recent topics |
 
-Optional: `OPENAI_CHAT_MODEL=gpt-4o` for higher-quality content.
+Optional: `GEMINI_CHAT_MODEL=gemini-3-flash-preview` (default). Optional: `GEMINI_IMAGE_MODEL=imagen-4.0-generate-001` (default).
 
 ### 4. Run the app
 
@@ -42,7 +43,7 @@ streamlit run app.py
 - **Step 1:** Niche defaults to AI, Gen AI, Agentic AI, VLSI, Embedded Systems, IT Services. Click **Search trending topics**. Results are saved to `data/topics.xlsx`.
 - **Step 2:** Pick a topic (or search again).
 - **Step 3:** Click **Generate post** — content follows the strategist prompt (hooks, main content, hashtags; audience senior leaders; goal authority/community; no C-level or company names).
-- **Step 4:** Click **Generate image** (DALL-E). Approve or **Regenerate**.
+- **Step 4:** Click **Generate image** (Gemini Imagen). Approve or **Regenerate**.
 
 ## Deploy
 
@@ -53,7 +54,7 @@ streamlit run app.py
 3. Choose your repo, branch `main`, main file **`app.py`**.
 4. Open **Advanced settings → Secrets** and add:
    ```toml
-   OPENAI_API_KEY = "sk-proj-..."
+   GEMINI_API_KEY = "..."
    TAVILY_API_KEY = "tvly-..."
    ```
 5. Click **Deploy**. You’ll get a link like `https://your-app.streamlit.app` to share.
@@ -70,24 +71,24 @@ docker run -p 8501:8501 --env-file .env linkedin-content-machine
 ### Railway / Render
 
 - Web Service: build `pip install -r requirements.txt`, start `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`.
-- Set `OPENAI_API_KEY` and `TAVILY_API_KEY`.
+- Set `GEMINI_API_KEY` and `TAVILY_API_KEY`.
 
 ## Project layout
 
 ```
 automation/
 ├── app.py              # Streamlit UI
-├── config.py           # Paths and OpenAI config
+├── config.py           # Paths and Gemini config
 ├── requirements.txt
 ├── .env.example
 ├── data/
 │   └── topics.xlsx     # Saved topics
 ├── output/             # Generated images
 └── services/
-    ├── topics.py       # OpenAI topic suggestions
+    ├── topics.py       # Gemini topic suggestions (Tavily + Gemini)
     ├── excel_store.py  # Excel read/write
-    ├── content.py      # ChatGPT LinkedIn post (strategist prompt)
-    └── image_gen.py    # DALL-E image generation
+    ├── content.py      # Gemini LinkedIn post (strategist prompt)
+    └── image_gen.py    # Gemini Imagen image generation
 ```
 
 ## Content prompt (built-in)
