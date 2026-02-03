@@ -1,4 +1,4 @@
-"""Trending topics: Tavily (WEF/workforce + domains) + Gemini to shape topics per strategist brief."""
+"""Trending topics: Tavily web research + Gemini to shape topics per strategist brief (Agentic AI, Gen AI, AI, Embedded, VLSI)."""
 import json
 import re
 from typing import List, Dict, Any
@@ -12,29 +12,24 @@ DEFAULT_NICHES = (
     "AI, Gen AI, Agentic AI, VLSI, Embedded Systems, IT Services and Industry"
 )
 
-TOPIC_STRATEGIST_SYSTEM = """Role & Context
-Act as a top-tier social media strategist, trend analyst, and executive narrative architect.
-Your task is to create high-authority, high-engagement LinkedIn content grounded in credible data and macro-signals, not just breaking news.
+TOPIC_STRATEGIST_SYSTEM = """You are a social media content strategist and growth marketer.
+Use Tavily-powered web research to gather recent, credible, and high-engagement information related to Agentic AI, Gen AI, AI, Embedded System, VLSI.
 
-Primary Research Source
-World Economic Forum (WEF)
-Focus theme: Great Workforce Adaptation
-Extract data points, statistics, insights, and long-term signals (skills shift, AI-human collaboration, workforce resilience, productivity, automation impact).
-⚠️ Avoid speculative or clickbait-only claims. Prioritize data-backed insights.
+Research Instructions:
+- Prioritize credible blogs, industry reports, expert opinions, trending social posts, and news
+- Extract statistics, strong opinions, contrarian takes, and emerging trends
+- Identify what is currently resonating on LinkedIn
 
-Brand Voice Context
-Content is published on behalf of two technology-forward organizations (do not name them explicitly).
-Tone must reflect enterprise credibility, strategic clarity, and future-readiness.
-
-Content Scope (Rotate Across Topics)
-Generate LinkedIn content within one or more of the following domains:
+Content Scope (rotate across topics):
 - Artificial Intelligence (AI)
 - Generative AI
 - Agentic AI & autonomous systems
 - VLSI & semiconductor innovation
 - Embedded Systems
 - IT Services & digital transformation
-- Industry & workforce evolution"""
+- Industry & workforce evolution
+
+Tone: enterprise credibility, strategic clarity, future-readiness. Avoid speculative or clickbait-only claims; prioritize data-backed insights."""
 
 
 def search_trending_topics(
@@ -43,7 +38,7 @@ def search_trending_topics(
     recency: str = "month",
 ) -> List[Dict[str, Any]]:
     """
-    Use Tavily for WEF/workforce/domain search, then Gemini to shape topics per strategist brief.
+    Use Tavily for web research, then Gemini to shape topics per strategist brief.
     Returns list of dicts with keys: title, reason, summary.
     """
     if not TAVILY_API_KEY:
@@ -57,11 +52,10 @@ def search_trending_topics(
     client = TavilyClient(api_key=TAVILY_API_KEY)
     time_range = recency if recency in ("day", "week", "month", "year") else "month"
 
-    # Query 1: WEF + Great Workforce Adaptation + data/insights
+    # Query 1: credible sources + domains (Agentic AI, Gen AI, AI, Embedded, VLSI)
     query1 = (
-        "World Economic Forum WEF Great Workforce Adaptation "
-        "skills shift AI human collaboration workforce resilience productivity automation "
-        f"data statistics insights {niche} published last {time_range}"
+        f"credible blogs industry reports expert opinions {niche} "
+        f"statistics trends LinkedIn trending published last {time_range}"
     )
     response1 = client.search(
         query=query1,
@@ -119,17 +113,17 @@ def search_trending_topics(
                 GEMINI_CHAT_MODEL,
                 system_instruction=TOPIC_STRATEGIST_SYSTEM,
             )
-            user_prompt = f"""Based on the following web search results (WEF/workforce/domain-related), output exactly {count} topic ideas for LinkedIn that match the Role & Context above.
+            user_prompt = f"""Based on the following Tavily web search results, output exactly {count} topic ideas for LinkedIn that match the research instructions and content scope above.
 
 Web search results (recent, {time_range}):
 {raw_text}
 
 For each topic provide a JSON array of objects with keys: "title", "reason", "summary".
 - title: One short, scroll-stopping headline (data-backed, not clickbait).
-- reason: Why it fits WEF/Great Workforce Adaptation or the listed domains (one sentence).
+- reason: Why it fits the domains and what is resonating on LinkedIn (one sentence).
 - summary: One-sentence angle or data point for the post.
 
-Return ONLY the JSON array, no other text. Prioritize data-backed insights over speculation."""
+Return ONLY the JSON array, no other text. Prioritize data-backed insights and what resonates on LinkedIn."""
 
             resp = model.generate_content(
                 user_prompt,
@@ -169,7 +163,7 @@ Return ONLY the JSON array, no other text. Prioritize data-backed insights over 
         seen_titles.add(title.lower())
         topics.append({
             "title": title[:200],
-            "reason": f"Recent ({time_range}) from web search; WEF/workforce/domain focus.",
+            "reason": f"Recent ({time_range}) from Tavily web search; Agentic AI, Gen AI, AI, Embedded, VLSI focus.",
             "summary": (content[:300] + "…") if len(content) > 300 else content[:300],
         })
         if len(topics) >= count:
