@@ -63,6 +63,6 @@ def generate_linkedin_content(
 
     resp = model.generate_content(
         user_content,
-        generation_config={"max_output_tokens": 1024, "temperature": 0.7},
+        generation_config={"max_output_tokens": 65536, "temperature": 0.7},
     )
     return (resp.text or "").strip()

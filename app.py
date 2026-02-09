@@ -26,7 +26,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-st.title("📄 LinkedIn Content Machine")
+st.title("📄 LinkedIn Content Machine-Makonis")
 st.caption("Topics (Tavily web search) → Select → Generate post & image → Approve")
 
 # Session state
@@ -131,9 +131,26 @@ else:
 # --- Step 4: Image (Gemini Imagen, approve / regenerate) ---
 st.header("4️⃣ Post image (Gemini Imagen)")
 if st.session_state.selected_topic:
+    with st.expander("🖼️ Image template (optional)", expanded=False):
+        st.caption("Describe the layout/style you want. The image will match your content but follow this template.")
+        image_template = st.text_area(
+            "Template description",
+            placeholder="e.g. Minimal slide: white background, bold headline at top center, one simple icon in the middle, corporate blue accent.",
+            key="image_template",
+            height=80,
+        )
+        hero_for_image = st.text_input(
+            "HERO headline for image (optional)",
+            placeholder="Paste the HERO Copy from the caption above to show on the image.",
+            key="hero_for_image",
+        )
     if st.button("🖼️ Generate image"):
         with st.spinner("Generating image…"):
-            path, err = generate_post_image(st.session_state.selected_topic)
+            path, err = generate_post_image(
+                st.session_state.selected_topic,
+                template_description=image_template.strip() or None,
+                hero_copy=hero_for_image.strip() or None,
+            )
             if err:
                 st.error(err)
             else:

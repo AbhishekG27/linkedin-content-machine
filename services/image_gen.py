@@ -22,9 +22,13 @@ IMAGEN_PREDICT_URL = "https://generativelanguage.googleapis.com/v1beta/models/{m
 def generate_post_image(
     topic: str,
     style: str = "professional, clean, LinkedIn-style graphic",
+    template_description: Optional[str] = None,
+    hero_copy: Optional[str] = None,
 ) -> Tuple[Optional[Path], Optional[str]]:
     """
     Generate an image for the LinkedIn post using Gemini Imagen (REST API).
+    If template_description is provided, the image will follow that layout/style.
+    If hero_copy is provided, use it as the headline text on the image (when template allows).
     Returns (local_file_path, None) on success, or (None, error_message).
     """
     if not GEMINI_API_KEY:
@@ -34,8 +38,18 @@ def generate_post_image(
     prompt = (
         f"Create a single, professional image suitable for a LinkedIn post. "
         f"Topic/theme: {topic}. Style: {style}. "
-        f"No text overlay in the image. High quality, suitable for business audience."
     )
+    if template_description and template_description.strip():
+        prompt += (
+            f"Follow this exact visual template/layout: {template_description.strip()}. "
+        )
+    if hero_copy and hero_copy.strip():
+        prompt += (
+            f"Include this headline text on the image (clear, bold): \"{hero_copy.strip()}\". "
+        )
+    if not (hero_copy and hero_copy.strip()):
+        prompt += "No text overlay in the image. "
+    prompt += "High quality, suitable for business audience."
 
     try:
         url = IMAGEN_PREDICT_URL.format(model=GEMINI_IMAGE_MODEL)
